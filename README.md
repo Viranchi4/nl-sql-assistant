@@ -72,7 +72,6 @@ nl-to-sql-assistant/
 
 ## ▶️ How to Run (will be updated as we build)
 ```bash
-pip install -r requirements.txt
 python src/app.py
 ```
 ---
