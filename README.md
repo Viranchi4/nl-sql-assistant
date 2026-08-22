@@ -53,7 +53,7 @@ nl-to-sql-assistant/
 │
 ├── requirements.txt
 └── README.md
-'''
+```
 
 ---
 
