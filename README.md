@@ -37,6 +37,7 @@ Everything runs locally — no cloud APIs, no external dependencies.
 ---
 
 ## 📂 Planned Project Structure
+```text
 nl-to-sql-assistant/
 │
 ├── data/
