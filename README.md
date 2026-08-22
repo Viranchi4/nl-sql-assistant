@@ -56,12 +56,25 @@ nl-to-sql-assistant/
 ```
 
 ---
+### ⚙️ Setup
+
+1. Copy the example env file:
+   - macOS / Linux: `cp .env.example .env`
+   - Windows PowerShell: `Copy-Item .env.example .env`
+
+2. Edit `.env` and replace placeholder values with your real DB credentials.
+
+3. Install dependencies:
+   ```bash
+   python -m pip install -r requirements.txt
+
+---
 
 ## ▶️ How to Run (will be updated as we build)
 ```bash
-pip install -r requirements.txt
 python src/app.py
 ```
+---
 
 ## 👤 Author
 Viranchi Parikh  
