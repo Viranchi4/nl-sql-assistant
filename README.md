@@ -53,6 +53,7 @@ nl-to-sql-assistant/
 │
 ├── requirements.txt
 └── README.md
+'''
 
 ---
 
@@ -60,3 +61,8 @@ nl-to-sql-assistant/
 ```bash
 pip install -r requirements.txt
 python src/app.py
+
+##👤 Author
+Viranchi Parikh  
+Data Scientist | AI/ML Engineer
+LinkedIn: https://www.linkedin.com/in/viranchi-parikh-3aba0019a/
