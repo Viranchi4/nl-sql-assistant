@@ -63,7 +63,7 @@ pip install -r requirements.txt
 python src/app.py
 ```
 
-##👤 Author
+## 👤 Author
 Viranchi Parikh  
 Data Scientist | AI/ML Engineer
 LinkedIn: https://www.linkedin.com/in/viranchi-parikh-3aba0019a/
