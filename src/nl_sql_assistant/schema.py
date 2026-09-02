@@ -107,3 +107,49 @@ def get_database_schema() -> str:
         )
 
     return "\n".join(schema_lines)
+
+def get_schema_map() -> dict[str, set[str]]:
+    """
+    Return the database schema as a mapping of
+    table names to their column names.
+
+    Example:
+    {
+        "customers": {"customer_id", "name", "country"},
+        "orders": {"order_id", "customer_id", "order_date"},
+    }
+    """
+
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        database_name = connection.database
+
+        cursor.execute(
+            """
+            SELECT
+                TABLE_NAME,
+                COLUMN_NAME
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = %s
+            ORDER BY TABLE_NAME, ORDINAL_POSITION
+            """,
+            (database_name,),
+        )
+
+        columns = cursor.fetchall()
+
+    finally:
+        cursor.close()
+        connection.close()
+
+    schema_map = {}
+
+    for column in columns:
+        table_name = column["TABLE_NAME"]
+        column_name = column["COLUMN_NAME"]
+
+        schema_map.setdefault(table_name, set()).add(column_name)
+
+    return schema_map

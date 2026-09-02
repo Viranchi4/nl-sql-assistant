@@ -1,5 +1,5 @@
 import pytest
-
+import nl_sql_assistant.sql.validator as validator
 from nl_sql_assistant.sql.validator import (
     SQLValidationError,
     validate_sql,
@@ -38,3 +38,76 @@ def test_empty_query_is_rejected():
 
     with pytest.raises(SQLValidationError):
         validate_sql(query)
+
+def test_schema_validation_rejects_unknown_alias(monkeypatch):
+    fake_schema = {
+        "categories": {
+            "category_id",
+            "category_name",
+        }
+    }
+
+    monkeypatch.setattr(
+        validator,
+        "get_schema_map",
+        lambda: fake_schema,
+    )
+
+    query = """
+        SELECT c.category_name
+        FROM categories cat
+    """
+
+    with pytest.raises(
+        SQLValidationError,
+        match="Unknown table alias",
+    ):
+        validator.validate_schema_references(query)
+
+
+def test_schema_validation_rejects_unknown_column(monkeypatch):
+    fake_schema = {
+        "categories": {
+            "category_id",
+            "category_name",
+        }
+    }
+
+    monkeypatch.setattr(
+        validator,
+        "get_schema_map",
+        lambda: fake_schema,
+    )
+
+    query = """
+        SELECT c.missing_column
+        FROM categories c
+    """
+
+    with pytest.raises(
+        SQLValidationError,
+        match="Unknown column",
+    ):
+        validator.validate_schema_references(query)
+
+
+def test_schema_validation_accepts_valid_reference(monkeypatch):
+    fake_schema = {
+        "categories": {
+            "category_id",
+            "category_name",
+        }
+    }
+
+    monkeypatch.setattr(
+        validator,
+        "get_schema_map",
+        lambda: fake_schema,
+    )
+
+    query = """
+        SELECT c.category_name
+        FROM categories c
+    """
+
+    validator.validate_schema_references(query)
