@@ -18,8 +18,9 @@ def generate_text(prompt: str, model: str = DEFAULT_MODEL) -> str:
         "prompt": prompt,
         "stream": False,
         "options": {
-            "temperature": 0
-        }
+            "temperature": 0,
+            "seed": 42,
+        },
     }
 
     request = Request(
