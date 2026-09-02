@@ -98,3 +98,105 @@ def test_pipeline_does_not_execute_invalid_sql(monkeypatch):
         )
 
     assert database_was_called is False
+
+def test_pipeline_corrects_sql_after_database_error(monkeypatch):
+    """
+    If the first SQL query fails in MySQL,
+    the pipeline should correct it and retry once.
+    """
+
+    import mysql.connector
+
+    original_sql = (
+        "SELECT c.category_name "
+        "FROM categories cat LIMIT 1;"
+    )
+
+    corrected_sql = (
+        "SELECT cat.category_name "
+        "FROM categories cat LIMIT 1;"
+    )
+
+    expected_results = [
+        {"category_name": "Laptops"},
+    ]
+
+    monkeypatch.setattr(
+        pipeline,
+        "generate_sql",
+        lambda question: original_sql,
+    )
+
+    monkeypatch.setattr(
+        pipeline,
+        "validate_sql",
+        lambda sql: None,
+    )
+
+    monkeypatch.setattr(
+        pipeline,
+        "correct_sql",
+        lambda question, failed_sql, error_message: corrected_sql,
+    )
+
+    execution_count = 0
+
+    def fake_execute(sql):
+        nonlocal execution_count
+        execution_count += 1
+
+        if execution_count == 1:
+            raise mysql.connector.Error(
+                "Unknown column c.category_name"
+            )
+
+        return expected_results
+
+    monkeypatch.setattr(
+        pipeline,
+        "execute_query",
+        fake_execute,
+    )
+
+    result = pipeline.run_text_to_sql(
+        "Show the highest revenue product category"
+    )
+
+    assert execution_count == 2
+    assert result["original_sql"] == original_sql
+    assert result["sql"] == corrected_sql
+    assert result["corrected"] is True
+    assert result["results"] == expected_results
+
+def test_pipeline_marks_successful_first_attempt_as_not_corrected(
+    monkeypatch,
+):
+    fake_sql = "SELECT * FROM customers;"
+    fake_results = [{"customer_id": 1}]
+
+    monkeypatch.setattr(
+        pipeline,
+        "generate_sql",
+        lambda question: fake_sql,
+    )
+
+    monkeypatch.setattr(
+        pipeline,
+        "validate_sql",
+        lambda sql: None,
+    )
+
+    monkeypatch.setattr(
+        pipeline,
+        "execute_query",
+        lambda sql: fake_results,
+    )
+
+    result = pipeline.run_text_to_sql(
+        "Show all customers"
+    )
+
+    assert result["sql"] == fake_sql
+    assert result["original_sql"] == fake_sql
+    assert result["corrected"] is False
+    assert result["results"] == fake_results

@@ -1,7 +1,10 @@
 import re
 
 from nl_sql_assistant.llm.ollama_client import generate_text
-from nl_sql_assistant.llm.prompts import build_sql_generation_prompt
+from nl_sql_assistant.llm.prompts import (
+    build_sql_correction_prompt,
+    build_sql_generation_prompt,
+)
 from nl_sql_assistant.schema import get_database_schema
 
 
@@ -40,6 +43,30 @@ def generate_sql(question: str) -> str:
     prompt = build_sql_generation_prompt(
         question=question,
         schema=schema,
+    )
+
+    response = generate_text(prompt)
+
+    return clean_sql_response(response)
+
+
+def correct_sql(
+    question: str,
+    failed_sql: str,
+    error_message: str,
+) -> str:
+    """
+    Ask the local LLM to correct a SQL query
+    using the database error and current schema.
+    """
+
+    schema = get_database_schema()
+
+    prompt = build_sql_correction_prompt(
+        question=question,
+        schema=schema,
+        failed_sql=failed_sql,
+        error_message=error_message,
     )
 
     response = generate_text(prompt)
