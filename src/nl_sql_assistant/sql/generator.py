@@ -5,7 +5,10 @@ from nl_sql_assistant.llm.prompts import (
     build_sql_correction_prompt,
     build_sql_generation_prompt,
 )
-from nl_sql_assistant.schema import get_database_schema
+from nl_sql_assistant.schema import (
+    get_database_schema,
+    get_database_value_context
+)
 
 
 def clean_sql_response(response: str) -> str:
@@ -39,10 +42,12 @@ def generate_sql(question: str) -> str:
     """
 
     schema = get_database_schema()
+    value_context = get_database_value_context()
 
     prompt = build_sql_generation_prompt(
         question=question,
         schema=schema,
+        value_context=value_context,
     )
 
     response = generate_text(prompt)
@@ -61,10 +66,12 @@ def correct_sql(
     """
 
     schema = get_database_schema()
+    value_context = get_database_value_context()
 
     prompt = build_sql_correction_prompt(
         question=question,
         schema=schema,
+        value_context=value_context,
         failed_sql=failed_sql,
         error_message=error_message,
     )

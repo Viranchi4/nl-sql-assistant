@@ -153,3 +153,70 @@ def get_schema_map() -> dict[str, set[str]]:
         schema_map.setdefault(table_name, set()).add(column_name)
 
     return schema_map
+
+def get_database_value_context(max_distinct_values: int = 20) -> str:
+    """
+    Return known values for low-cardinality text columns.
+
+    This helps ground the LLM in real database values instead
+    of forcing it to guess categorical values such as product
+    categories or order statuses.
+    """
+
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    try:
+        database_name = connection.database
+
+        cursor.execute(
+            """
+            SELECT
+                TABLE_NAME,
+                COLUMN_NAME,
+                DATA_TYPE
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = %s
+              AND DATA_TYPE IN ('varchar', 'char', 'enum')
+            ORDER BY TABLE_NAME, ORDINAL_POSITION
+            """,
+            (database_name,),
+        )
+
+        text_columns = cursor.fetchall()
+
+        context_lines = []
+
+        for column in text_columns:
+            table_name = column["TABLE_NAME"]
+            column_name = column["COLUMN_NAME"]
+
+            query = (
+                f"SELECT DISTINCT `{column_name}` AS value "
+                f"FROM `{table_name}` "
+                f"WHERE `{column_name}` IS NOT NULL "
+                f"LIMIT {max_distinct_values + 1}"
+            )
+
+            cursor.execute(query)
+            values = [
+                row["value"]
+                for row in cursor.fetchall()
+            ]
+
+            # Only include genuinely low-cardinality columns.
+            if 0 < len(values) <= max_distinct_values:
+                context_lines.append(
+                    f"{table_name}.{column_name}:"
+                )
+
+                for value in values:
+                    context_lines.append(f"  - {value}")
+
+                context_lines.append("")
+
+        return "\n".join(context_lines).strip()
+
+    finally:
+        cursor.close()
+        connection.close()
