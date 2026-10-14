@@ -1,10 +1,21 @@
 import json
+import os
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from dotenv import load_dotenv
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-DEFAULT_MODEL = "qwen2.5-coder:3b"
+load_dotenv()
+
+OLLAMA_URL = os.getenv(
+    "SA_OLLAMA_URL",
+    "http://localhost:11434/api/generate",
+)
+
+DEFAULT_MODEL = os.getenv(
+    "SA_OLLAMA_MODEL",
+    "qwen2.5-coder:3b"
+)
 
 
 def generate_text(prompt: str, model: str = DEFAULT_MODEL) -> str:

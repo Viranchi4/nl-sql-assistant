@@ -1,17 +1,17 @@
 import json
+import argparse
 from decimal import Decimal
 from pathlib import Path
 
 from nl_sql_assistant.pipeline import run_text_to_sql
 from nl_sql_assistant.sql.executor import execute_query
+from nl_sql_assistant.llm.ollama_client import DEFAULT_MODEL
 
-
-def load_questions():
-    questions_path = Path(__file__).parent / "questions.json"
+def load_questions(dataset: str):
+    questions_path = Path(__file__).parent / dataset
 
     with open(questions_path, "r", encoding="utf-8") as file:
         return json.load(file)
-
 
 def normalize_value(value):
     """
@@ -54,15 +54,32 @@ def results_match(generated_results, reference_results):
 
 
 def main():
-    questions = load_questions()
+    parser = argparse.ArgumentParser(
+        description="Evaluate the NL-to-SQL pipeline."
+    )
+
+    parser.add_argument(
+        "--dataset",
+        default="questions.json",
+        help="Evaluation dataset filename inside the evaluation folder.",
+    )
+
+    args = parser.parse_args()
+
+    questions = load_questions(args.dataset)
+
+    model_name = DEFAULT_MODEL
 
     total = len(questions)
 
     execution_successful = 0
     correct_results = 0
     corrected_queries = 0
+    evaluation_records = []
 
-    print(f"\nRunning evaluation on {total} questions...\n")
+    print(f"\nModel   : {model_name}")
+    print(f"Dataset : {args.dataset}")
+    print(f"Running evaluation on {total} questions...\n")
 
     for item in questions:
         question_id = item["id"]
@@ -100,6 +117,18 @@ def main():
                 reference_results,
             )
 
+            evaluation_records.append(
+                {
+                    "id": question_id,
+                    "difficulty": difficulty,
+                    "question": question,
+                    "generated_sql": generated_sql,
+                    "generated_results": generated_results,
+                    "corrected": result["corrected"],
+                    "correction_attempts": result["correction_attempts"],
+                }
+            )
+
             if is_correct:
                 correct_results += 1
                 print("\nRESULT: CORRECT")
@@ -121,6 +150,17 @@ def main():
         except Exception as error:
             print("\nEXECUTION: FAILED")
             print(f"Error: {error}")
+            evaluation_records.append(
+                {
+                    "id": question_id,
+                    "difficulty": difficulty,
+                    "question": question,
+                    "generated_sql": None,
+                    "generated_results": None,
+                    "correct": False,
+                    "error": str(error),
+                }
+            )
 
         print()
 
@@ -140,6 +180,8 @@ def main():
     print("EVALUATION SUMMARY")
     print("=" * 70)
 
+    print(f"Model                 : {model_name}")
+    print(f"Dataset               : {args.dataset}")
     print(f"Total questions       : {total}")
     print(f"Executed successfully : {execution_successful}")
     print(f"Correct results       : {correct_results}")
@@ -147,6 +189,45 @@ def main():
 
     print(f"\nExecution success rate: {execution_rate:.2f}%")
     print(f"Result accuracy       : {result_accuracy:.2f}%")
+
+    results_dir = Path(__file__).parent / "results"
+    results_dir.mkdir(exist_ok=True)
+
+    dataset_name = Path(args.dataset).stem
+
+    safe_model_name = (
+        model_name
+        .replace(":", "_")
+        .replace("/", "_")
+    )
+
+    output_path = (
+        results_dir
+        / f"{dataset_name}__{safe_model_name}.json"
+    )
+
+    report = {
+        "model": model_name,
+        "dataset": args.dataset,
+        "total_questions": total,
+        "executed_successfully": execution_successful,
+        "correct_results": correct_results,
+        "corrected_queries": corrected_queries,
+        "execution_success_rate": round(execution_rate, 2),
+        "result_accuracy": round(result_accuracy, 2),
+        "questions": evaluation_records,
+    }
+
+    with open(output_path, "w", encoding="utf-8") as file:
+        json.dump(
+            report,
+            file,
+            indent=2,
+            default=str,
+        )
+
+    print(f"\nEvaluation report saved to:")
+    print(output_path)
 
 
 if __name__ == "__main__":

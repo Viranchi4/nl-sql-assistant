@@ -36,9 +36,18 @@ RULES:
     The total value of an order is the sum of:
     order_items.quantity * order_items.unit_price
     for all order_items belonging to that order.
-13. Return only the SQL query.
-14. Do not include explanations.
-15. Do not include Markdown code fences.
+13. Before writing the query, identify which table owns every column needed
+    for SELECT, WHERE, GROUP BY, HAVING, and ORDER BY clauses.
+14. Never reference a column through a table alias unless that column exists
+    in that table according to the database schema.
+15. If a required column belongs to a table that has not yet been included,
+    join that table using the foreign-key relationships shown in the schema.
+16. For multi-table questions, follow the complete foreign-key path needed
+    to reach every requested attribute instead of assigning the attribute
+    to a nearby table.
+17. Return only the SQL query.
+18. Do not include explanations.
+19. Do not include Markdown code fences.
 
 EXAMPLE OF AGGREGATION REASONING:
 
@@ -120,9 +129,45 @@ RULES:
     order_items.quantity * order_items.unit_price.
 11. Ensure the corrected query still answers the ORIGINAL USER QUESTION,
     not just the database error.
-12. Return only the corrected SQL query.
-13. Do not include explanations.
-14. Do not include Markdown code fences.
+12. Verify that every referenced column belongs to the table or alias used
+    with that column.
+13. If the failed query references a column through the wrong table alias,
+    identify the table that actually owns the column and add the required
+    joins using the schema relationships.
+14. For multi-table questions, verify that the full foreign-key path required
+    for every requested output, filter, grouping, and metric is present.
+15. If an error says that a column belongs to a different table, adding that
+    table to the query is not enough. Replace every reference to the column
+    so that it uses the alias of the table that actually owns the column.
+16. Check SELECT, WHERE, GROUP BY, HAVING, and ORDER BY for references to the 
+    incorrect tables alias and update all of them.
+17. Before returning the corrected SQL, verify that every qualified reference
+    such as alias.column refers to a column that actually exists in the table
+    represented by that alias.
+18. Return only the corrected SQL query.
+19. Do not include explanations.
+20. Do not include Markdown code fences.
+
+EXAMPLE OF COLUMN OWNERSHIP CORRECTION:
+
+Failed SQL:
+SELECT p.category_name, COUNT(*)
+FROM products p
+GROUP BY p.category_name;
+
+Error:
+Column 'category_name' does not belong to products.
+It belongs to categories.
+
+Corrected SQL:
+SELECT c.category_name, COUNT(*)
+FROM products p
+JOIN categories c ON p.category_id = c.category_id
+GROUP BY c.category_name;
+
+Important:
+The correction both adds the required table AND replaces all references
+to the incorrectly qualified column.
 
 CORRECTED SQL:
 """.strip()

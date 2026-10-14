@@ -1,0 +1,80 @@
+{
+  "model": "qwen2.5-coder:3b",
+  "dataset": "holdout_questions.json",
+  "total_questions": 5,
+  "executed_successfully": 4,
+  "correct_results": 4,
+  "corrected_queries": 0,
+  "execution_success_rate": 80.0,
+  "result_accuracy": 80.0,
+  "questions": [
+    {
+      "id": 1,
+      "difficulty": "easy",
+      "question": "How many customers are from India?",
+      "generated_sql": "SELECT COUNT(*) AS number_of_customers_from_india\nFROM customers\nWHERE country = 'India';",
+      "generated_results": [
+        {
+          "number_of_customers_from_india": 2
+        }
+      ],
+      "corrected": false,
+      "correction_attempts": 0
+    },
+    {
+      "id": 2,
+      "difficulty": "easy",
+      "question": "List all products with fewer than 30 units in stock",
+      "generated_sql": "SELECT product_name\nFROM products\nWHERE stock_quantity < 30;",
+      "generated_results": [
+        {
+          "product_name": "ProBook Laptop"
+        },
+        {
+          "product_name": "UltraSlim Laptop"
+        },
+        {
+          "product_name": "Tab Lite"
+        }
+      ],
+      "corrected": false,
+      "correction_attempts": 0
+    },
+    {
+      "id": 3,
+      "difficulty": "medium",
+      "question": "Which customer has placed the highest number of orders?",
+      "generated_sql": "SELECT c.name AS customer_name, COUNT(o.order_id) AS order_count\nFROM customers c\nJOIN orders o ON c.customer_id = o.customer_id\nGROUP BY c.customer_id\nORDER BY order_count DESC\nLIMIT 1;",
+      "generated_results": [
+        {
+          "customer_name": "Alice Martin",
+          "order_count": 2
+        }
+      ],
+      "corrected": false,
+      "correction_attempts": 0
+    },
+    {
+      "id": 4,
+      "difficulty": "medium",
+      "question": "What is the mean total amount spent per order?",
+      "generated_sql": "SELECT AVG(total_spent) AS mean_total_spent_per_order\nFROM (\n    SELECT\n        order_id,\n        SUM(quantity * unit_price) AS total_spent\n    FROM order_items\n    GROUP BY order_id\n) AS order_totals;",
+      "generated_results": [
+        {
+          "mean_total_spent_per_order": "1088.333333"
+        }
+      ],
+      "corrected": false,
+      "correction_attempts": 0
+    },
+    {
+      "id": 5,
+      "difficulty": "hard",
+      "question": "Which product category generated the highest revenue from customers in India?",
+      "generated_sql": null,
+      "generated_results": null,
+      "correct": false,
+      "error": "Unknown column 'category_name' for table 'customers'. Column 'category_name' exists in table(s): categories"
+    }
+  ]
+}

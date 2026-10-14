@@ -114,7 +114,22 @@ def validate_schema_references(query: str) -> None:
         real_table_name = alias_to_table[table_alias]
 
         if column_name not in schema_map[real_table_name]:
+            possible_tables = sorted(
+                table_name
+                for table_name, columns in schema_map.items()
+                if column_name in columns
+            )
+
+            ownership_hint = ""
+
+            if possible_tables:
+                ownership_hint = (
+                    f". Column '{column_name}' exists in table(s): "
+                    f"{', '.join(possible_tables)}"
+                )
+
             raise SQLSchemaValidationError(
                 f"Unknown column '{column_name}' "
                 f"for table '{real_table_name}'"
+                f"{ownership_hint}"
             )
