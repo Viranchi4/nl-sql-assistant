@@ -1,0 +1,81 @@
+import re
+
+from nl_sql_assistant.llm.ollama_client import generate_text
+from nl_sql_assistant.llm.prompts import (
+    build_sql_correction_prompt,
+    build_sql_generation_prompt,
+)
+from nl_sql_assistant.schema import (
+    get_database_schema,
+    get_database_value_context
+)
+
+
+def clean_sql_response(response: str) -> str:
+    """
+    Remove Markdown code fences that an LLM may add
+    around the generated SQL.
+    """
+
+    cleaned = response.strip()
+
+    cleaned = re.sub(
+        r"^```(?:sql)?\s*",
+        "",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+
+    cleaned = re.sub(
+        r"\s*```$",
+        "",
+        cleaned,
+    )
+
+    return cleaned.strip()
+
+
+def generate_sql(question: str) -> str:
+    """
+    Convert a natural-language question into SQL
+    using the current database schema and local LLM.
+    """
+
+    schema = get_database_schema()
+    value_context = get_database_value_context()
+
+    prompt = build_sql_generation_prompt(
+        question=question,
+        schema=schema,
+        value_context=value_context,
+    )
+
+    response = generate_text(prompt)
+
+    return clean_sql_response(response)
+
+
+def correct_sql(
+    question: str,
+    failed_sql: str,
+    error_message: str,
+) -> str:
+    """
+    Ask the local LLM to correct a SQL query
+    using the database error and current schema.
+    """
+
+    schema = get_database_schema()
+    value_context = get_database_value_context()
+
+    prompt = build_sql_correction_prompt(
+        question=question,
+        schema=schema,
+        value_context=value_context,
+        failed_sql=failed_sql,
+        error_message=error_message,
+    )
+
+    response = generate_text(prompt)
+
+    return clean_sql_response(response)
