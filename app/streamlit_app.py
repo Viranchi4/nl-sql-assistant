@@ -71,19 +71,6 @@ st.info(
     "to generate and validate SQL queries."
 )
 
-with st.expander("⚙️ How it works"):
-    st.markdown(
-        """
-1. Your natural-language question is combined with the live MySQL schema
-   and known categorical database values.
-2. A local Qwen2.5-Coder model generates a MySQL query through Ollama.
-3. The SQL is parsed and validated before execution.
-4. Only safe, read-only queries are allowed.
-5. Valid SQL is executed against the MySQL database and the results are displayed.
-6. If validation or execution fails, the pipeline can make bounded correction attempts.
-        """
-    )
-
 st.subheader("Ask a Question")
 
 with st.form("nl_sql_form"):
@@ -148,3 +135,16 @@ if submitted:
             
         except Exception as error:
             st.error(str(error))
+
+with st.expander("⚙️ How it works"):
+    st.markdown(
+        """
+1. Your natural-language question is combined with the live MySQL schema
+   and known categorical database values.
+2. A local Qwen2.5-Coder model generates a MySQL query through Ollama.
+3. The SQL is parsed and validated before execution.
+4. Only safe, read-only queries are allowed.
+5. Valid SQL is executed against the MySQL database and the results are displayed.
+6. If validation or execution fails, the pipeline can make bounded correction attempts.
+        """
+    )
