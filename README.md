@@ -47,7 +47,7 @@ If the generated SQL fails schema validation or database execution, the system c
 ---
 
 ## ⚙️ Tech Stack
-- Python 3.10+
+- Python 3.11+
 - MySQL 8 (local instance)
 - Ollama
 - Qwen2.5-Coder 3B and 7B
@@ -246,7 +246,7 @@ $env:SA_OLLAMA_MODEL="qwen2.5-coder:7b"
 
 ## ▶️ Run the Assistant
 
-Start the interactive CLI:
+### Start the interactive CLI:
 
 ```powershell
 python -m nl_sql_assistant.cli
@@ -262,6 +262,12 @@ Results:
 ...
 
 Type exit or quit to close the application.
+
+### Run the Streamlit interface
+
+```powershell
+python -m streamlit run app/streamlit_app.py
+```
 
 ---
 
@@ -298,12 +304,6 @@ python evaluation/evaluate.py --dataset holdout_questions.json
 
 Evaluation reports are written to evaluation/results/
 
----
-
-## ▶️ How to Run (will be updated as we build)
-```bash
-python src/app.py
-```
 ---
 
 ## 👤 Author
