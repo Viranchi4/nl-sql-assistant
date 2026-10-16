@@ -1,5 +1,7 @@
 # 🧠 Natural Language to SQL Assistant (MySQL)
 
+[![Tests](https://github.com/Viranchi4/nl-sql-assistant/actions/workflows/tests.yml/badge.svg)](https://github.com/Viranchi4/nl-sql-assistant/actions/workflows/tests.yml)
+
 A local LLM-powered Text-to-SQL application that converts natural-language questions into safe, executable MySQL queries.
 
 The project uses locally hosted Qwen2.5-Coder models through Ollama, so no paid LLM API or cloud service is required.
@@ -74,6 +76,18 @@ If the generated SQL fails schema validation or database execution, the system c
 - Holdout benchmark for testing generalization
 - Reproducible model comparison between 3B and 7B models
 - Unit tests for generation, validation and pipeline behaviour
+
+---
+
+## 🖥️ Demo
+
+### Application Interface
+
+![Streamlit application](docs/images/streamlit-default.png)
+
+### Example Text-to-SQL Query
+
+![Text-to-SQL query result](docs/images/streamlit-query-result.png)
 
 ---
 
